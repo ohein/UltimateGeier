@@ -1,0 +1,158 @@
+package vultureUtil;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.LinkedList;
+
+public class TwoPlayerCombinationGenerator implements
+		TournamentScheduleGenerator {
+	private final int n; // Number of Players
+	private final ArrayList<Integer> completedGamesOfPlayer; // saves the number
+																// of played
+																// Games for
+																// each player
+	private final LinkedList<Matchup> matches;
+	private int maxGamesPlayed; // Number of completed cames of the player with
+								// the most games
+	private int minGamesPlayed;
+
+	protected TwoPlayerCombinationGenerator(int n) {
+		this.n = n;
+		completedGamesOfPlayer = new ArrayList<Integer>();
+		matches = new LinkedList<Matchup>();
+		reset();
+	}
+
+	@Override
+	public BigInteger getNumLeft() {
+		return new BigInteger(String.valueOf(matches.size()));
+	}
+
+	@Override
+	public void reset() {
+		completedGamesOfPlayer.clear();
+		matches.clear();
+		for (int i = 0; i < n; i++) {
+			completedGamesOfPlayer.add(new Integer(0));
+		}
+
+		minGamesPlayed = 0;
+		maxGamesPlayed = 0;
+		Matchup tmpMatchup;
+
+		while (minGamesPlayed != (n - 1)) {
+			int min = 1000000;
+			int max = -1;
+			int minPlayer1 = -1;
+			int minPlayer2 = -1;
+			tmpMatchup = new Matchup();
+			for (int i = 0; i < n; i++) {
+				if (isPlayerWithFewestGames(i, min)) {
+					minPlayer1 = i;
+					min = completedGamesOfPlayer.get(i);
+				}
+			}
+			tmpMatchup.player1 = minPlayer1;
+			min = 10000000;
+			for (int j = 0; j < n; j++) {
+				if (isDifferentPlayerWithFewestGamesAndNewMatchup(j,
+						minPlayer1, min)) {
+					minPlayer2 = j;
+					min = completedGamesOfPlayer.get(j);
+				}
+			}
+			tmpMatchup.player2 = minPlayer2;
+			matches.add(tmpMatchup);
+			completedGamesOfPlayer.set(minPlayer1,
+					completedGamesOfPlayer.get(minPlayer1) + 1);
+			completedGamesOfPlayer.set(minPlayer2,
+					completedGamesOfPlayer.get(minPlayer2) + 1);
+
+			min = 1000000000;
+			for (int i = 0; i < n; i++) {
+				if (completedGamesOfPlayer.get(i) < min) {
+					min = completedGamesOfPlayer.get(i);
+				}
+			}
+			minGamesPlayed = min;
+
+			for (int j = 0; j < n; j++) {
+				if (completedGamesOfPlayer.get(j) > max) {
+					max = completedGamesOfPlayer.get(j);
+				}
+			}
+			maxGamesPlayed = max;
+		}
+	}
+
+	// Code
+	private boolean isDifferentPlayerWithFewestGamesAndNewMatchup(
+			int currentPlayer, int player2, int minimum) {
+		return playersAreDifferent(currentPlayer, player2)
+				&& isPlayerWithFewestGames(currentPlayer, minimum)
+				&& !matchupAlreadyExists(currentPlayer, player2);
+	}
+
+	private boolean playersAreDifferent(int player1, int player2) {
+		return player1 != player2;
+	}
+
+	private boolean matchupAlreadyExists(int player1, int player2) {
+		return matches.contains(new Matchup(player1, player2));
+	}
+
+	private boolean isPlayerWithFewestGames(int player, int minimum) {
+		return completedGamesOfPlayer.get(player) < minimum;
+	}
+
+	@Override
+	public int[] getNext() {
+		Matchup result = matches.remove();
+		return new int[] { result.player1, result.player2 };
+	}
+
+	@Override
+	public boolean hasMore() {
+		return (matches.size() != 0);
+	}
+
+	@Override
+	public BigInteger getTotal() {
+		int tmp = 1;
+		int sum = 1;
+		while (tmp <= n) {
+			sum *= tmp;
+			tmp++;
+		}
+
+		int tmp2 = 1;
+		int sum2 = 1;
+		while (tmp2 <= (n - 2)) {
+			sum2 *= tmp2;
+			tmp2++;
+		}
+
+		return new BigInteger(String.valueOf((sum / (sum2 * 2))));
+	}
+
+	public static void main(String[] args) {
+		TwoPlayerCombinationGenerator generator = new TwoPlayerCombinationGenerator(
+				7);
+		System.out.println("Anzahl der Partien: " + generator.getTotal());
+		System.out.println();
+		while (generator.hasMore()) {
+			int[] res = generator.getNext();
+			for (int i = 0; i < res.length; i++) {
+				System.out.print(res[i] + " ");
+			}
+			System.out.println();
+		}
+	}
+
+	@Override
+	// @author Gruppe 1
+	public int getN() {
+		return n;
+	}
+
+}

@@ -1,0 +1,66 @@
+package player;
+
+import java.io.Serializable;
+
+import controller.*;
+//
+public abstract class HolsDerGeierSpieler implements Serializable {
+    private int nummer;
+    private transient DealerState dealer;
+    private String password;
+    protected String name;
+    
+    public void reset2(){
+    	
+    }
+    
+    public HolsDerGeierSpieler(String name){
+    	this.name=name;
+    }
+    
+    public void setName(String name){
+    	this.name = name;
+    }
+    
+    public HolsDerGeierSpieler(){
+    	this("Spieler");
+    }
+    
+    @Override
+	public String toString(){
+    	return name + " : " + getClass().getName();
+    }
+    
+    public int getNummer() {
+        return nummer;
+    }
+    public DealerState getDealer()  {
+        return dealer;
+    }
+
+    public int letzterZug(int playerNumber) {
+        return dealer.getLastCardOf(playerNumber);
+    }
+    
+    /** Mit dieser Methode erfragt ein Spieler die von sämtlichen Gegenern im letzten Zug gelegten Karten*/
+    public int letzterZug(){
+    	return dealer.getSetOfLastCards(nummer)[0];
+    }
+    
+    public void register(DealerState hdg,int nummer) {
+        this.dealer=hdg;
+        this.nummer=nummer;
+    }
+    
+    @Override
+	public int hashCode(){
+    	return (getName()+password).hashCode();
+    }
+    
+    public String getName(){
+    	return name;
+    }
+    
+    public abstract void reset();    
+    public abstract int gibKarte(int naechsteKarte);
+}

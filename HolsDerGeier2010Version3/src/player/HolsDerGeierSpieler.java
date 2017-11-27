@@ -1,0 +1,117 @@
+package player;
+
+import java.io.Serializable;
+
+import logger.OwnLogger;
+
+import org.apache.log4j.FileAppender;
+import org.apache.log4j.SimpleLayout;
+
+import controller.BuzzardSeriesInfo;
+import controller.DealerState;
+
+public abstract class HolsDerGeierSpieler implements Serializable {
+    private int nummer;
+	private transient DealerState dealer;
+	private String password;
+	private FileAppender fileAppender;
+	protected String name;
+	BuzzardSeriesInfo bsi;
+
+
+    
+    @Override
+	public String toString(){
+    	return name + " : " + getClass().getName();
+    }
+
+
+	public void reset2() {
+
+	}
+
+	public HolsDerGeierSpieler(String name) {
+		this.name = name;
+	}
+	
+	private FileAppender getFileAppender(){
+		return this.fileAppender;
+	}
+	
+	private String getFileAppenderName(){
+		return getFileAppender().getName();
+	}
+
+	public void setName(String name) {
+		this.name = name;
+		try {
+			SimpleLayout layout = new SimpleLayout();
+			this.fileAppender = new FileAppender(layout, "C:/HDG_Logs/"
+			+ name + ".log", true);
+			fileAppender.setName(name);
+		} catch (Exception ex) {
+			System.out.println(ex);
+		}
+	}
+
+	public HolsDerGeierSpieler() {
+		this("Spieler");
+	}
+
+	public int getNummer() {
+		return nummer;
+	}
+
+	public DealerState getDealer() {
+		return dealer;
+	}
+
+
+	public int anzahlGewinnspiele() {
+		return dealer.gewinnrundenanzahl();
+	}
+	
+	public void logAufConsole(String str){
+		logAufConsole(str, 3);
+	}
+	
+	public void logAufConsole(String str, int warn){
+		OwnLogger.logAufConsole(str, warn);
+	}
+	
+	public void logInDatei(String str){
+		logInDatei(str, 3);
+	}
+	
+	public void logInDatei(String str, int warn){
+		OwnLogger.getSpielerLogger().addAppender(getFileAppender());
+		OwnLogger.logInDatei(str, warn);
+		OwnLogger.getSpielerLogger().removeAppender(getFileAppenderName());
+	}
+
+    public int letzterZug(int playerNumber) {
+        return dealer.getLastCardOf(playerNumber);
+    }
+    
+    /** Mit dieser Methode erfragt ein Spieler die von sämtlichen Gegenern im letzten Zug gelegten Karten*/
+    public int letzterZug(){
+    	return dealer.getSetOfLastCards(nummer)[0];
+    }
+    
+    public void register(DealerState hdg,int nummer) {
+        this.dealer=hdg;
+        this.nummer=nummer;
+    }
+    
+    @Override
+	public int hashCode(){
+    	return (getName()+password).hashCode();
+    }
+    
+    public String getName(){
+    	return name;
+    }
+    
+    public abstract void reset();    
+    public abstract int gibKarte(int naechsteKarte);
+}

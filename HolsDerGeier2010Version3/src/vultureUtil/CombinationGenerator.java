@@ -1,0 +1,136 @@
+package vultureUtil;
+
+/** Der Code dieser Klasse stammt von der Internetseite
+ *  http://www.merriampark.com/comb.htm
+ *  von Michael Gilleland, aufgerufen am 10.10.2010 um 16:26.
+ *  
+ *  Auf dieser Seite findet sich unter anderem folgendes Zitat zur Herkunft des Algorithmus:
+ *  
+ *  "The CombinationGenerator Java class systematically generates all combinations of n 
+ *   elements, taken r at a time. The algorithm is described by Kenneth H. Rosen, Discrete 
+ *   Mathematics and Its Applications, 2nd edition (NY: McGraw-Hill, 1991), pp. 284-286." 
+ * 	 
+ *   Ebenson wird das folgende Anwendungsbeispiel aufgefuehrt:
+ *   
+ String[] elements = {"a", "b", "c", "d", "e", "f", "g"};
+ int[] indices;
+ CombinationGenerator x = new CombinationGenerator (elements.length, 3);
+ StringBuffer combination;
+ while (x.hasMore ()) {
+ combination = new StringBuffer ();
+ indices = x.getNext ();
+ for (int i = 0; i < indices.length; i++) {
+ combination.append (elements[indices[i]]);
+ }
+ System.out.println (combination.toString ());
+ }
+
+ *  */
+import java.math.BigInteger;
+
+public class CombinationGenerator implements TournamentScheduleGenerator {
+
+	private final int[] a;
+	private final int n;
+	private final int r;
+	private BigInteger numLeft;
+	private final BigInteger total;
+
+	// ------------
+	// Constructor
+	// ------------
+
+	protected CombinationGenerator(int n, int r) {
+		if (r > n) {
+			throw new IllegalArgumentException();
+		}
+		if (n < 1) {
+			throw new IllegalArgumentException();
+		}
+		this.n = n;
+		this.r = r;
+		a = new int[r];
+		BigInteger nFact = getFactorial(n);
+		BigInteger rFact = getFactorial(r);
+		BigInteger nminusrFact = getFactorial(n - r);
+		total = nFact.divide(rFact.multiply(nminusrFact));
+		reset();
+	}
+
+	// ------
+	// Return number of combinations not yet generated
+	// ------
+	@Override
+	public void reset() {
+		for (int i = 0; i < a.length; i++) {
+			a[i] = i;
+		}
+		numLeft = new BigInteger(total.toString());
+	}
+
+
+	// -----------------------------
+	// Are there more combinations?
+	// -----------------------------
+
+  @Override
+public BigInteger getNumLeft() {
+    return numLeft;
+  }
+
+
+	// ------------------------------------
+	// Return total number of combinations
+	// ------------------------------------
+  @Override
+public boolean hasMore () {
+    return numLeft.compareTo (BigInteger.ZERO) == 1;
+  }
+
+
+	// ------------------
+	// Compute factorial
+	// ------------------
+  @Override
+public BigInteger getTotal () {
+    return total;
+  }
+
+	private static BigInteger getFactorial(int n) {
+		BigInteger fact = BigInteger.ONE;
+		for (int i = n; i > 1; i--) {
+			fact = fact.multiply(new BigInteger(Integer.toString(i)));
+		}
+		return fact;
+	}
+
+	// --------------------------------------------------------
+	// Generate next combination (algorithm from Rosen p. 286)
+	// --------------------------------------------------------
+
+  @Override
+  public int[] getNext () {
+	  if (numLeft.equals(total)) {
+			numLeft = numLeft.subtract(BigInteger.ONE);
+			return a;
+		}
+	  
+		int i = r - 1;
+		while (a[i] == n - r + i) {
+			i--;
+		}
+		a[i] = a[i] + 1;
+		for (int j = i + 1; j < r; j++) {
+			a[j] = a[i] + j - i;
+		}
+
+		numLeft = numLeft.subtract(BigInteger.ONE);
+		return a;
+
+	}
+
+	@Override
+	public int getN() {
+		return n;
+	}
+}
