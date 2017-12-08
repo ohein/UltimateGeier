@@ -1,0 +1,4 @@
+#Beat the Buzzard
+#Mon Oct 18 22:12:50 CEST 2010
+playerPath=.\\bin\\player
+port=49166
